@@ -14,8 +14,30 @@ app.get('/', (req, res) => {
   res.send('QuickBite Backend is Running 🚀');
 });
 
-app.post('/send-whatsapp', async (req, res) => {
-  const { message } = req.body;
+app.post("/send-whatsapp", async (req, res) => {
+  const { customerName, phone, address, items, total } = req.body;
+
+  const orderItems = items
+    .map(
+      (item) =>
+        `• ${item.name} x${item.quantity} - ₹${item.price * item.quantity}`
+    )
+    .join("\n");
+
+  const message = `🍔 *New QuickBite Order*
+
+👤 *Customer:* ${customerName}
+📞 *Phone:* ${phone}
+
+🍽️ *Order Items:*
+${orderItems}
+
+💰 *Total:* ₹${total}
+
+📍 *Address:*
+${address}
+
+🕒 ${new Date().toLocaleString("en-IN")}`;
 
   try {
     const response = await axios.post(
@@ -27,18 +49,11 @@ app.post('/send-whatsapp', async (req, res) => {
       }
     );
 
-    console.log('WhatsApp sent:', response.data);
-
-    res.status(200).json({
+    res.json({
       success: true,
       data: response.data,
     });
   } catch (error) {
-    console.error(
-      'UltraMsg Error:',
-      error.response?.data || error.message
-    );
-
     res.status(500).json({
       success: false,
       error: error.response?.data || error.message,
